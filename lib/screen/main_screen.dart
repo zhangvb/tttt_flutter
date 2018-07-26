@@ -14,12 +14,11 @@ class ContentList extends StatefulWidget {
 }
 
 class ContentListState extends State<ContentList> {
-
   ScrollController _controller;
 
   @override
   void initState() {
-    _controller = new ScrollController()..addListener(_scrollListener);
+    _controller = ScrollController()..addListener(_scrollListener);
     super.initState();
     _onRefresh(false);
   }
@@ -35,7 +34,7 @@ class ContentListState extends State<ContentList> {
 
   void _onRefresh(bool up) {
     print('onRefresh $up');
-    if (ContentsManager().isLoading()){
+    if (ContentsManager().isLoading()) {
       print('onRefresh loading now!!!');
       return;
     }
@@ -62,7 +61,6 @@ class ContentListState extends State<ContentList> {
     _controller.removeListener(_scrollListener);
     super.dispose();
   }
-
 }
 
 class Item extends StatefulWidget {
@@ -71,7 +69,7 @@ class Item extends StatefulWidget {
   Item(this.index);
 
   @override
-  _ItemState createState() => new _ItemState();
+  _ItemState createState() => _ItemState();
 }
 
 class _ItemState extends State<Item> {
@@ -82,8 +80,8 @@ class _ItemState extends State<Item> {
       return Container();
     }
 
-    return new RepaintBoundary(
-      child: new Image.network(
+    return RepaintBoundary(
+      child: Image.network(
         ContentsManager().contentAt(widget.index).imageUrl,
         fit: BoxFit.cover,
       ),
