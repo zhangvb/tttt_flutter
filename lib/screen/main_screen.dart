@@ -14,8 +14,12 @@ class ContentList extends StatefulWidget {
 }
 
 class ContentListState extends State<ContentList> {
+
+  ScrollController _controller;
+
   @override
   void initState() {
+    _controller = new ScrollController()..addListener(_scrollListener);
     super.initState();
     _onRefresh(false);
   }
@@ -25,11 +29,16 @@ class ContentListState extends State<ContentList> {
     return ListView.builder(
         scrollDirection: Axis.vertical,
         itemCount: ContentsManager().size(),
+        controller: _controller,
         itemBuilder: (BuildContext context, int index) => Item(index));
   }
 
   void _onRefresh(bool up) {
     print('onRefresh $up');
+    if (ContentsManager().isLoading()){
+      print('onRefresh loading now!!!');
+      return;
+    }
     Future future =
         up ? ContentsManager().loadMore() : ContentsManager().refresh();
     future.then((success) {
@@ -40,6 +49,20 @@ class ContentListState extends State<ContentList> {
       print('_onRefresh finish');
     });
   }
+
+  void _scrollListener() {
+    print('extendAfter ${_controller.position.extentAfter}');
+    if (_controller.position.extentAfter < 500) {
+      _onRefresh(true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_scrollListener);
+    super.dispose();
+  }
+
 }
 
 class Item extends StatefulWidget {
