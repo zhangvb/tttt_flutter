@@ -53,27 +53,33 @@ class ContentsManager {
   ContentsManager._internal();
 
   Future<bool> loadMore() {
+    print('load more');
     int startId = _contents.isEmpty ? 0 : _contents[_contents.length - 1].id;
     if (startId <= 0) {
       return refresh();
     }
 
     return _curFetchingFuture ??= _fetch(startId).then((fetchResult) {
+      print('afeter loadmore');
       _curFetchingFuture = null;
       _contents.addAll(fetchResult);
       return true;
     }).catchError(() {
+      print('afeter error');
       return false;
     });
   }
 
   Future<bool> refresh() {
+    print('refresh');
     return _curFetchingFuture ??= _fetch(0).then((fetchResult) {
+      print('afeter refresh');
       _curFetchingFuture = null;
       _contents.clear();
       _contents.addAll(fetchResult);
       return true;
     }).catchError(() {
+      print('afeter refresh error');
       return false;
     });
   }
@@ -82,13 +88,15 @@ class ContentsManager {
 
   bool hasContent() => _contents.isNotEmpty;
 
+  int size() => _contents.length;
+
   ImageContent contentAt(int index) =>
       index >= _contents.length ? null : _contents[index];
 
   Future<List<ImageContent>> _fetch(int startId) async {
+    List<ImageContent> result = [];
     try {
-      List<ImageContent> result = [];
-
+      print('_fetch');
       String url =
           startId <= 0 ? baseUrl : (baseUrl + '?' + 'startId=$startId');
 
@@ -99,8 +107,6 @@ class ContentsManager {
             .map((e) => ImageContent.fromJson(e))
             .toList();
 
-        print(result);
-
         result.removeWhere((value) => (value == null ||
             value.imageUrl == null ||
             value.imageUrl == '' ||
@@ -108,10 +114,10 @@ class ContentsManager {
             value.id <= 0));
       }
       print(result);
-      return result;
     } catch (e, s) {
       print('Exception details:\n $e');
       print('Stack trace:\n $s');
     }
+    return result;
   }
 }
