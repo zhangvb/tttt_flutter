@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import "package:pull_to_refresh/pull_to_refresh.dart";
+import 'package:tttt/model/contents.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -8,68 +10,115 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  ListView _listView;
-  final List<String> _listData = List<String>();
-
   @override
   Widget build(BuildContext context) {
-    var dataBuilder = StreamBuilder(
-      stream: _getData(),
-      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+    var dataBuilder = FutureBuilder<List<ImageContent>>(
+      future: ContentsManager().refresh(),
+      builder:
+          (BuildContext context, AsyncSnapshot<List<ImageContent>> snapshot) {
         if (snapshot.connectionState == ConnectionState.none ||
             snapshot.connectionState == ConnectionState.waiting) {
           return Text('Loading...');
         } else if (snapshot.hasError) {
-          return Text('Error');
+          return Text('Error Found.');
+        } else if (snapshot.data.isEmpty) {
+          return Text('No Contents Now.');
         }
-        _listData.add(snapshot.data);// TODO WRONG! CREATE NEW EVERY TIME. CORRECT IT LATER
-        return createListViewIfNeeded(context, snapshot);
+        return ContentList();
       },
     );
 
     return new Scaffold(
       appBar: new AppBar(
-        title: new Text("Home Page"),
+        title: new Text("TianTianTieTu"),
       ),
       body: dataBuilder,
     );
   }
+}
 
-  Stream<String> _getData() {
-    var maxCount = 1000;
-    StreamController<String> controller = StreamController<String>();
-    int counter = 0;
+class ContentList extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => ContentListState();
+}
 
-    void tick(Timer timer) {
-      counter++;
-      controller.add('$counter');
-      if (maxCount != null && counter >= maxCount) {
-        timer.cancel();
-        controller.close();
-      }
-    }
+class ContentListState extends State<ContentList> {
+  RefreshController _controller;
 
-    Timer.periodic(Duration(seconds: 1), tick);
-    return controller.stream;
+  @override
+  void initState() {
+    super.initState();
+    _controller = new RefreshController();
   }
 
-  Widget createListViewIfNeeded(BuildContext context, AsyncSnapshot snapshot) {
-   return ListView.builder(
-        itemBuilder: (BuildContext context, int index) {
-          print('index $index');
-          if (index >= _listData.length) {
-            return null;
-          }
-          return new Column(
-            children: <Widget>[
-              new ListTile(
-                title: Text(_listData[index]),
-              ),
-              new Divider(
-                height: 2.0,
-              ),
-            ],
-          );
-        });
+  @override
+  Widget build(BuildContext context) {
+    var listView = ListView.builder(
+        scrollDirection: Axis.vertical,
+        itemBuilder: (BuildContext context, int index) => Item(index));
+
+    return new SmartRefresher(
+        enablePullDown: true,
+        enablePullUp: true,
+        controller: _controller,
+        onRefresh: _onRefresh,
+        headerBuilder: _headerCreate,
+        footerBuilder: _footerCreate,
+        footerConfig: RefreshConfig(),
+        onOffsetChange: _onOffsetCallback,
+        child: listView);
+  }
+
+  Widget _headerCreate(BuildContext context, int mode) {
+    return new ClassicIndicator(mode: mode);
+  }
+
+  Widget _footerCreate(BuildContext context, int mode) {
+    return new ClassicIndicator(
+      mode: mode,
+      refreshingText: 'loading...',
+      idleIcon: const Icon(Icons.arrow_upward),
+      idleText: 'Loadmore...',
+    );
+  }
+
+  void _onRefresh(bool up) {
+    Future<List<ImageContent>> future =
+        up ? ContentsManager().loadMore() : ContentsManager().refresh();
+    future.then((newContents) {
+      setState(() {});
+      _controller.sendBack(false, RefreshStatus.idle);
+    });
+  }
+
+  void _onOffsetCallback(bool isUp, double offset) {}
+}
+
+class Item extends StatefulWidget {
+  final index;
+
+  Item(this.index);
+
+  @override
+  _ItemState createState() => new _ItemState();
+}
+
+class _ItemState extends State<Item> {
+  @override
+  Widget build(BuildContext context) {
+    if (ContentsManager().contentAt(widget.index) == null) return null;
+
+    return new RepaintBoundary(
+      child: new Image.network(
+        ContentsManager().contentAt(widget.index).imageUrl,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    print("dispose item");
+    super.dispose();
   }
 }
