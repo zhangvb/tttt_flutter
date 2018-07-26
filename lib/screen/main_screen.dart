@@ -12,16 +12,18 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
-    var dataBuilder = FutureBuilder<List<ImageContent>>(
+    var dataBuilder = FutureBuilder<bool>(
       future: ContentsManager().refresh(),
-      builder:
-          (BuildContext context, AsyncSnapshot<List<ImageContent>> snapshot) {
+      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
         if (snapshot.connectionState == ConnectionState.none ||
             snapshot.connectionState == ConnectionState.waiting) {
           return Text('Loading...');
-        } else if (snapshot.hasError) {
+        } else if (snapshot.hasError || !snapshot.data) {
+          print('snapSHot.has ${snapshot.hasError}');
+          print('snapshot.data ${snapshot.data}');
+
           return Text('Error Found.');
-        } else if (snapshot.data.isEmpty) {
+        } else if (!ContentsManager().hasContent()) {
           return Text('No Contents Now.');
         }
         return ContentList();
@@ -83,11 +85,14 @@ class ContentListState extends State<ContentList> {
   }
 
   void _onRefresh(bool up) {
-    Future<List<ImageContent>> future =
+    Future future =
         up ? ContentsManager().loadMore() : ContentsManager().refresh();
-    future.then((newContents) {
+    future.then((success) {
       setState(() {});
       _controller.sendBack(false, RefreshStatus.idle);
+      if (!success) {
+        // Todo show Fail
+      }
     });
   }
 
@@ -106,7 +111,8 @@ class Item extends StatefulWidget {
 class _ItemState extends State<Item> {
   @override
   Widget build(BuildContext context) {
-    if (ContentsManager().contentAt(widget.index) == null) return null;
+    if (ContentsManager().contentAt(widget.index) == null)
+      return Container(width: 0.0, height: 0.0);
 
     return new RepaintBoundary(
       child: new Image.network(
