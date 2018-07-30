@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:convert' show json;
+import 'dart:io';
 
 import 'package:http/http.dart' as HttpClient;
-
-const baseUrl = 'https://238429054.tiantiantietu.xyz/weapp/feed';
 
 class ImageContent {
   final int id;
@@ -27,7 +26,7 @@ class ImageContent {
         userId = map['user_id'],
         userName = map['user_name'],
         userAvatarUrl = map['user_avatar'],
-        imageUrl = map['img0'],
+        imageUrl = 'http://h.hiphotos.baidu.com/image/h%3D300/sign=ff6ed7cfa718972bbc3a06cad6cc7b9d/267f9e2f07082838304837cfb499a9014d08f1a0.jpg',//map['img0'],
         imgWidth = int.tryParse(map['img0width'] ?? ''),
         imgHeight = int.tryParse(map['img0height'] ?? ''),
         commentCount = int.tryParse(map['comment_count'] ?? ''),
@@ -41,6 +40,7 @@ class ImageContent {
 }
 
 class ContentsManager {
+  static const _baseUrl = 'https://238429054.tiantiantietu.xyz/weapp/feed';
   static ContentsManager _instance;
 
   List<ImageContent> _contents = [];
@@ -98,8 +98,8 @@ class ContentsManager {
     try {
       print('_fetch');
       String url =
-          startId <= 0 ? baseUrl : (baseUrl + '?' + 'startId=$startId');
-
+          startId <= 0 ? _baseUrl : (_baseUrl + '?' + 'startId=$startId');
+      Future.delayed(const Duration(milliseconds: 3));
       HttpClient.Response response = await HttpClient.get(url);
 
       if (response.body != null) {

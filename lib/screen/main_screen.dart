@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:tttt/model/contents.dart';
+import 'package:tttt/widget/pull_to_refresh.dart';
 
 class MainScreen extends StatelessWidget {
   @override
@@ -14,52 +15,45 @@ class ContentList extends StatefulWidget {
 }
 
 class ContentListState extends State<ContentList> {
-  ScrollController _controller;
-
   @override
   void initState() {
-    _controller = ScrollController()..addListener(_scrollListener);
     super.initState();
+    print('init');
+    print(widget);
     _onRefresh(false);
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-        scrollDirection: Axis.vertical,
-        itemCount: ContentsManager().size(),
-        controller: _controller,
-        itemBuilder: (BuildContext context, int index) => Item(index));
+    print('build contentlist');
+    return PullToRefreshWidget(
+      child: ListView.builder(
+          scrollDirection: Axis.vertical,
+          itemCount: ContentsManager().size(),
+          itemBuilder: (BuildContext context, int index) => Item(index)),
+      onRefresh: () {
+        return _onRefresh(false);
+      },
+      onLoadMore: () {
+        return _onRefresh(true);
+      },
+    );
   }
 
-  void _onRefresh(bool up) {
+  Future<Null> _onRefresh(bool up) {
     print('onRefresh $up');
-    if (ContentsManager().isLoading()) {
-      print('onRefresh loading now!!!');
-      return;
-    }
-    Future future =
-        up ? ContentsManager().loadMore() : ContentsManager().refresh();
-    future.then((success) {
+
+    Future<bool> future =
+        Future.delayed(Duration(seconds: 3), (){return up ? ContentsManager().loadMore() : ContentsManager().refresh();});
+
+    return future.then((success) {
       setState(() {});
       if (!success) {
         // Todo show Fail
       }
       print('_onRefresh finish');
+      return null;
     });
-  }
-
-  void _scrollListener() {
-    print('extendAfter ${_controller.position.extentAfter}');
-    if (_controller.position.extentAfter < 500) {
-      _onRefresh(true);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_scrollListener);
-    super.dispose();
   }
 }
 
@@ -77,14 +71,13 @@ class _ItemState extends State<Item> {
   Widget build(BuildContext context) {
     if (ContentsManager().contentAt(widget.index) == null) {
       print('null content ${widget.index}');
-      return Container();
+      return Container(width: 0.0, height: 0.0);
     }
 
-    return RepaintBoundary(
-      child: Image.network(
-        ContentsManager().contentAt(widget.index).imageUrl,
-        fit: BoxFit.cover,
-      ),
+    return Image.network(
+      ContentsManager().contentAt(widget.index).imageUrl,
+      fit: BoxFit.cover,
+      height: 400.0,
     );
   }
 
