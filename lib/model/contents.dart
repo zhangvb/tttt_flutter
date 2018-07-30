@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert' show json;
-import 'dart:io';
 
 import 'package:http/http.dart' as HttpClient;
 
@@ -26,7 +25,8 @@ class ImageContent {
         userId = map['user_id'],
         userName = map['user_name'],
         userAvatarUrl = map['user_avatar'],
-        imageUrl = 'http://h.hiphotos.baidu.com/image/h%3D300/sign=ff6ed7cfa718972bbc3a06cad6cc7b9d/267f9e2f07082838304837cfb499a9014d08f1a0.jpg',//map['img0'],
+        imageUrl =
+            'http://h.hiphotos.baidu.com/image/h%3D300/sign=ff6ed7cfa718972bbc3a06cad6cc7b9d/267f9e2f07082838304837cfb499a9014d08f1a0.jpg', //map['img0'],
         imgWidth = int.tryParse(map['img0width'] ?? ''),
         imgHeight = int.tryParse(map['img0height'] ?? ''),
         commentCount = int.tryParse(map['comment_count'] ?? ''),

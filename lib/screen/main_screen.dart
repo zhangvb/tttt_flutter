@@ -43,8 +43,10 @@ class ContentListState extends State<ContentList> {
   Future<Null> _onRefresh(bool up) {
     print('onRefresh $up');
 
-    Future<bool> future =
-        Future.delayed(Duration(seconds: 3), (){return up ? ContentsManager().loadMore() : ContentsManager().refresh();});
+    Future<bool> future = Future.delayed(Duration(seconds: 3), () {
+      // TODO Delay TO SHOW REFRESH ANIMATION
+      return up ? ContentsManager().loadMore() : ContentsManager().refresh();
+    });
 
     return future.then((success) {
       setState(() {});

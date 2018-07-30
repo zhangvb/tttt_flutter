@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:tttt/screen/main_screen.dart';
-import 'package:tttt/widget/pull_to_refresh.dart';
 
 void main() => runApp(TTTTApp());
 
